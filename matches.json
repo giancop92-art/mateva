@@ -1,221 +1,197 @@
 {
   "schema_version": "3.0",
-  "generated_at": "2026-11-21T16:59:12.641715+01:00",
+  "generated_at": "2026-11-21T18:17:57.844002+01:00",
   "matches": [
     {
-      "id": "2026-11-21-como-cagliari",
+      "id": "2026-11-21-parma-as-roma",
       "competition": "Serie A",
       "context_type": "domestic_league",
       "matchday": "12ª Giornata",
-      "kickoff_iso": "2026-11-21T14:00Z",
-      "venue": "Stadio Giuseppe Sinigaglia",
+      "kickoff_iso": "2026-11-21T17:00Z",
+      "venue": "Stadio Ennio Tardini",
       "referee": {
-        "name": "Da designare",
+        "name": "Da verificare",
         "cards_per_game": null,
         "penalties_rate_pct": null,
         "strictness": null
       },
       "teams": {
         "home": {
-          "name": "Como",
-          "position": 10,
-          "points": 15,
-          "goals_for": 12,
-          "goals_against": 14,
-          "xg_per_game": 1.25,
-          "xga_per_game": 1.4,
+          "name": "Parma",
+          "position": 16,
+          "points": 8,
+          "goals_for": 9,
+          "goals_against": 17,
+          "xg_per_game": null,
+          "xga_per_game": null,
           "recent_form": [
-            "W",
-            "D",
             "L",
+            "L",
+            "D",
             "W",
             "L"
           ],
           "split_stats": {
             "label": "Casa",
-            "played": 5,
-            "points_per_game": 1.4,
-            "gf_per_game": 1.2,
-            "ga_per_game": 1.0,
-            "corners_for_avg": 7.75,
+            "played": 6,
+            "points_per_game": 0.83,
+            "gf_per_game": 0.67,
+            "ga_per_game": 1.33,
+            "corners_for_avg": 3.5,
             "cards_avg": 1.5
           },
           "absences": {
             "confirmed_out": [],
             "doubtful": []
           },
-          "rest_days": 7,
+          "rest_days": null,
           "upcoming_cup_fixture": null,
-          "probable_formation": "3-5-2"
+          "probable_formation": "4-2-3-1"
         },
         "away": {
-          "name": "Cagliari",
-          "position": 4,
-          "points": 22,
-          "goals_for": 21,
+          "name": "AS Roma",
+          "position": 3,
+          "points": 27,
+          "goals_for": 31,
           "goals_against": 10,
-          "xg_per_game": 1.95,
-          "xga_per_game": 0.95,
+          "xg_per_game": null,
+          "xga_per_game": null,
           "recent_form": [
-            "W",
             "W",
             "D",
             "W",
-            "L"
+            "W",
+            "W"
           ],
           "split_stats": {
             "label": "Trasferta",
             "played": 5,
-            "points_per_game": 2.0,
-            "gf_per_game": 1.8,
-            "ga_per_game": 0.8,
-            "corners_for_avg": 3.67,
-            "cards_avg": 1.5
+            "points_per_game": 2.2,
+            "gf_per_game": 2.8,
+            "ga_per_game": 1.0,
+            "corners_for_avg": 5.2,
+            "cards_avg": 2.4
           },
           "absences": {
             "confirmed_out": [],
             "doubtful": []
           },
-          "rest_days": 7,
+          "rest_days": null,
           "upcoming_cup_fixture": null,
-          "probable_formation": "4-3-3"
+          "probable_formation": "3-4-2-1"
         }
       },
       "analysis": {
         "1_outcome_1x2": {
           "home_win": {
-            "min": 25,
-            "max": 29,
-            "mid": 27.0
+            "min": 15,
+            "max": 25,
+            "mid": 20.0
           },
           "draw": {
-            "min": 26,
+            "min": 20,
             "max": 30,
-            "mid": 28.0
+            "mid": 25.0
           },
           "away_win": {
-            "min": 43,
-            "max": 47,
-            "mid": 45.0
+            "min": 50,
+            "max": 60,
+            "mid": 55.0
           },
           "drivers": [
-            "Cagliari superior xG/xGA metrics",
-            "Como home field advantage"
+            "Netto divario in classifica: la Roma è terza con 27 punti contro i 8 del Parma sedicesimo.",
+            " Rendimento esterno eccellente della Roma con 2.2 punti a partita e 2.8 gol segnati in trasferta.",
+            " Il Parma in casa fatica a ingranare (0.83 punti a partita e solo 0.67 gol segnati di media)."
           ],
           "anomalies": [
-            "None"
+            "Il Parma ha mostrato sprazzi di competitività casalinga ma la forma recente vede tre sconfitte nelle ultime cinque."
           ]
         },
         "2_goals": {
           "over_2_5": {
-            "min": 50,
+            "min": 45,
             "max": 55,
-            "mid": 52.5
+            "mid": 50.0
           },
           "under_2_5": {
             "min": 45,
-            "max": 50,
-            "mid": 47.5
+            "max": 55,
+            "mid": 50.0
           },
           "btts_yes": {
-            "min": 48,
-            "max": 53,
-            "mid": 50.5
+            "min": 40,
+            "max": 50,
+            "mid": 45.0
           },
           "btts_no": {
-            "min": 47,
-            "max": 52,
-            "mid": 49.5
+            "min": 50,
+            "max": 60,
+            "mid": 55.0
           },
           "drivers": [
-            "Cagliari high offensive output",
-            "Como defensive vulnerability"
+            "La Roma vanta un attacco prolifico in trasferta (2.8 gol/partita), ma la difesa del Parma in casa subisce 1.33 reti di media.",
+            "Il Parma ha un reparto offensivo casalingo debole (0.67 gol/partita), il che rende probabile un clean sheet per la Roma."
           ]
         },
         "3_corners": {
           "line": 9.5,
           "over_line": {
-            "min": 48,
-            "max": 53,
-            "mid": 50.5
+            "min": 40,
+            "max": 50,
+            "mid": 45.0
           },
           "under_line": {
-            "min": 47,
-            "max": 52,
-            "mid": 49.5
+            "min": 50,
+            "max": 60,
+            "mid": 55.0
           },
-          "most_corners_team": "home",
+          "most_corners_team": "away",
           "most_corners_prob": {
-            "min": 58,
-            "max": 63,
-            "mid": 60.5
+            "min": 55,
+            "max": 65,
+            "mid": 60.0
           },
           "drivers": [
-            "Como high home corner average"
+            "La Roma produce una media di 5.2 corner a favore in trasferta.",
+            "Il Parma registra una media di soli 3.5 corner a favore nelle gare casalinghe."
           ]
         },
         "4_team_cards": {
           "line": 3.5,
           "over_line": {
-            "min": 55,
-            "max": 60,
-            "mid": 57.5
+            "min": 45,
+            "max": 55,
+            "mid": 50.0
           },
           "under_line": {
-            "min": 40,
-            "max": 45,
-            "mid": 42.5
+            "min": 45,
+            "max": 55,
+            "mid": 50.0
           },
-          "most_cards_team": "home",
+          "most_cards_team": "away",
           "most_cards_prob": {
-            "min": 54,
-            "max": 59,
-            "mid": 56.5
+            "min": 50,
+            "max": 60,
+            "mid": 55.0
           },
           "drivers": [
-            "Como tactical fouling in transition"
+            "La Roma fa registrare una media di 2.4 cartellini a partita in trasferta.",
+            "Il Parma mantiene una media disciplinare interna più bassa con 1.5 ammonizioni a incontro."
           ]
         },
         "5_penalties": {
           "penalty_yes": {
-            "min": 22,
-            "max": 27,
-            "mid": 24.5
+            "min": 25,
+            "max": 35,
+            "mid": 30.0
           },
           "favored_team": "away",
           "drivers": [
-            "Cagliari high frequency of deep area entries"
+            "La forte pressione offensiva esercitata dalla Roma in area di rigore avversaria alza leggermente la probabilità di penalty a favore."
           ]
         },
-        "6_player_goals": [
-          {
-            "player": "Cagliari Striker",
-            "team": "away",
-            "role": "ATT",
-            "expected_starter": true,
-            "set_piece_duty": "penalties",
-            "prob": {
-              "min": 35,
-              "max": 40,
-              "mid": 37.5
-            },
-            "key_metric": "High xG per 90"
-          }
-        ],
-        "7_player_cards": [
-          {
-            "player": "Como Midfielder",
-            "team": "home",
-            "role": "CC",
-            "cautioned_diffida": false,
-            "prob": {
-              "min": 28,
-              "max": 33,
-              "mid": 30.5
-            },
-            "key_metric": "High foul rate in defensive transition"
-          }
-        ]
+        "6_player_goals": [],
+        "7_player_cards": []
       },
       "data_quality": {
         "confidence": "medium",
@@ -224,11 +200,12 @@
           "Google News RSS"
         ],
         "coverage_gaps": [
-          "Understat data unavailable for 2026/27 season",
-          "Referee specific stats missing"
+          "Mancanza di dati xG specifici forniti nei dataset di partenza (valori null).",
+          "Assenza di dettagli ufficiali sulle formazioni titolari e sull'arbitro designato nelle notizie recenti."
         ],
         "pre_kickoff_checks": [
-          "Verify official lineups 1h before kickoff"
+          "Verificare le comunicazioni ufficiali sulle formazioni un'ora prima del match.",
+          "Controllare la designazione arbitrale definitiva."
         ]
       }
     },
@@ -240,68 +217,68 @@
       "kickoff_iso": "2026-11-21T19:45Z",
       "venue": "Stadio Diego Armando Maradona",
       "referee": {
-        "name": "Da designare",
+        "name": "Da verificare",
         "cards_per_game": null,
         "penalties_rate_pct": null,
-        "strictness": "medium"
+        "strictness": null
       },
       "teams": {
         "home": {
           "name": "Napoli",
           "position": 10,
           "points": 15,
-          "goals_for": 12,
+          "goals_for": 18,
           "goals_against": 14,
-          "xg_per_game": 1.25,
-          "xga_per_game": 1.4,
+          "xg_per_game": null,
+          "xga_per_game": null,
           "recent_form": [
-            "W",
-            "D",
             "L",
+            "D",
             "W",
-            "L"
+            "L",
+            "D"
           ],
           "split_stats": {
             "label": "Casa",
             "played": 5,
-            "points_per_game": 1.4,
-            "gf_per_game": 1.2,
-            "ga_per_game": 1.0,
+            "points_per_game": 1.6,
+            "gf_per_game": 1.8,
+            "ga_per_game": 1.2,
             "corners_for_avg": 5.2,
             "cards_avg": 1.4
           },
           "absences": {
             "confirmed_out": [],
             "doubtful": [
-              "Kevin De Bruyne",
-              "André-Frank Zambo Anguissa"
+              "De Bruyne",
+              "Anguissa"
             ]
           },
-          "rest_days": 7,
+          "rest_days": null,
           "upcoming_cup_fixture": null,
-          "probable_formation": "3-5-2"
+          "probable_formation": "4-3-3"
         },
         "away": {
           "name": "Torino",
-          "position": 4,
-          "points": 22,
-          "goals_for": 21,
-          "goals_against": 10,
-          "xg_per_game": 1.95,
-          "xga_per_game": 0.95,
+          "position": 11,
+          "points": 14,
+          "goals_for": 15,
+          "goals_against": 17,
+          "xg_per_game": null,
+          "xga_per_game": null,
           "recent_form": [
             "W",
             "W",
-            "D",
-            "W",
-            "L"
+            "L",
+            "L",
+            "D"
           ],
           "split_stats": {
             "label": "Trasferta",
             "played": 5,
-            "points_per_game": 2.0,
-            "gf_per_game": 1.8,
-            "ga_per_game": 0.8,
+            "points_per_game": 1.4,
+            "gf_per_game": 1.4,
+            "ga_per_game": 1.2,
             "corners_for_avg": 4.6,
             "cards_avg": 1.8
           },
@@ -309,173 +286,122 @@
             "confirmed_out": [],
             "doubtful": []
           },
-          "rest_days": 7,
+          "rest_days": null,
           "upcoming_cup_fixture": null,
-          "probable_formation": "4-3-3"
+          "probable_formation": "3-5-2"
         }
       },
       "analysis": {
         "1_outcome_1x2": {
           "home_win": {
-            "min": 30,
-            "max": 34,
-            "mid": 32.0
+            "min": 40,
+            "max": 50,
+            "mid": 45.0
           },
           "draw": {
-            "min": 26,
-            "max": 30,
-            "mid": 28.0
+            "min": 25,
+            "max": 35,
+            "mid": 30.0
           },
           "away_win": {
-            "min": 38,
-            "max": 42,
-            "mid": 40.0
+            "min": 20,
+            "max": 30,
+            "mid": 25.0
           },
           "drivers": [
-            "Torino in ottima posizione di classifica e con rendimento esterno solido",
-            "Napoli con incognite di formazione e dubbi su De Bruyne e Anguissa"
+            "Il Napoli gioca in casa dove mantiene una media di 1.6 punti per partita e 1.8 gol segnati.",
+            "Il Torino in trasferta mostra una buona resistenza con 1.4 punti a partita ma subisce 1.2 gol di media.",
+            "La classifica è molto corta con il Napoli a 15 punti e il Torino a 14, evidenziando un equilibrio generale."
           ],
           "anomalies": [
-            "Il Napoli gioca in casa ma fatica a trovare continuità in questa fase della stagione"
+            "Leggero svantaggio di forma recente per il Napoli con due pareggi e due sconfitte nelle ultime cinque."
           ]
         },
         "2_goals": {
           "over_2_5": {
-            "min": 51,
-            "max": 56,
-            "mid": 53.5
+            "min": 45,
+            "max": 55,
+            "mid": 50.0
           },
           "under_2_5": {
-            "min": 44,
-            "max": 49,
-            "mid": 46.5
+            "min": 45,
+            "max": 55,
+            "mid": 50.0
           },
           "btts_yes": {
-            "min": 53,
-            "max": 58,
-            "mid": 55.5
+            "min": 50,
+            "max": 60,
+            "mid": 55.0
           },
           "btts_no": {
-            "min": 42,
-            "max": 47,
-            "mid": 44.5
+            "min": 40,
+            "max": 50,
+            "mid": 45.0
           },
           "drivers": [
-            "Torino con potenziale offensivo elevato in trasferta",
-            "Napoli che concede mediamente più di un gol a partita"
+            "Il Napoli in casa produce 1.8 gol a partita ma ne subisce 1.2.",
+            "Il Torino fuori casa viaggia a una media di 1.4 gol segnati e 1.2 subiti, favorendo l'opzione Entrambe le Squadre a Segno."
           ]
         },
         "3_corners": {
           "line": 9.5,
           "over_line": {
-            "min": 50,
-            "max": 55,
-            "mid": 52.5
+            "min": 48,
+            "max": 58,
+            "mid": 53.0
           },
           "under_line": {
-            "min": 45,
-            "max": 50,
-            "mid": 47.5
+            "min": 42,
+            "max": 52,
+            "mid": 47.0
           },
           "most_corners_team": "home",
           "most_corners_prob": {
-            "min": 52,
-            "max": 57,
-            "mid": 54.5
+            "min": 55,
+            "max": 65,
+            "mid": 60.0
           },
           "drivers": [
-            "Medie corner interne del Napoli favorevoli (5.2)",
-            "Il Torino produce a sua volta buone medie esterne (4.6)"
+            "Il Napoli registra una media di 5.2 corner a favore nelle gare casalinghe.",
+            "Il Torino in trasferta produce una media di 4.6 corner a favore, portando il totale combinato intorno ai 9.8 corner."
           ]
         },
         "4_team_cards": {
           "line": 3.5,
           "over_line": {
             "min": 45,
-            "max": 50,
-            "mid": 47.5
+            "max": 55,
+            "mid": 50.0
           },
           "under_line": {
-            "min": 50,
+            "min": 45,
             "max": 55,
-            "mid": 52.5
+            "mid": 50.0
           },
           "most_cards_team": "away",
           "most_cards_prob": {
-            "min": 51,
-            "max": 56,
-            "mid": 53.5
+            "min": 52,
+            "max": 62,
+            "mid": 57.0
           },
           "drivers": [
-            "Medie cartellini complessivamente basse per entrambe le squadre nei dati estratti",
-            "Il Torino in trasferta alza leggermente la media falli/cartellini (1.8)"
+            "Il Torino ha una media di cartellini in trasferta pari a 1.8 ammonizioni per gara.",
+            "Il Napoli in casa colleziona una media di 1.4 cartellini a partita, mantenendo la gara su livelli disciplinari moderati."
           ]
         },
         "5_penalties": {
           "penalty_yes": {
-            "min": 22,
-            "max": 27,
-            "mid": 24.5
+            "min": 25,
+            "max": 35,
+            "mid": 30.0
           },
-          "favored_team": "away",
+          "favored_team": "home",
           "drivers": [
-            "Ingressi in area frequenti del Torino contro la difesa instabile del Napoli"
+            "La pressione offensiva del Napoli all'interno dell'area di rigore casalinga (15.2 tiri totali medi) aumenta la probabilità di interventi sanzionabili."
           ]
         },
-        "6_player_goals": [
-          {
-            "player": "Attaccante Torino",
-            "team": "away",
-            "role": "ATT",
-            "expected_starter": true,
-            "set_piece_duty": "penalties",
-            "prob": {
-              "min": 32,
-              "max": 38,
-              "mid": 35.0
-            },
-            "key_metric": "Alto xG per game in trasferta per il reparto offensivo granata"
-          },
-          {
-            "player": "David Neres",
-            "team": "home",
-            "role": "ATT",
-            "expected_starter": true,
-            "set_piece_duty": "none",
-            "prob": {
-              "min": 28,
-              "max": 34,
-              "mid": 31.0
-            },
-            "key_metric": "Principale terminale offensivo partenopeo nelle ultime uscite"
-          }
-        ],
-        "7_player_cards": [
-          {
-            "player": "Centrocampista Napoli",
-            "team": "home",
-            "role": "CC",
-            "cautioned_diffida": false,
-            "prob": {
-              "min": 27,
-              "max": 33,
-              "mid": 30.0
-            },
-            "key_metric": "Impegnato nella diga di centrocampo contro le transizioni ospiti"
-          },
-          {
-            "player": "Difensore Torino",
-            "team": "away",
-            "role": "DC",
-            "cautioned_diffida": false,
-            "prob": {
-              "min": 25,
-              "max": 31,
-              "mid": 28.0
-            },
-            "key_metric": "Duelli fisici costanti con gli attaccanti del Napoli"
-          }
-        ]
+        "6_player_goals": [],
+        "7_player_cards": []
       },
       "data_quality": {
         "confidence": "medium",
@@ -484,11 +410,12 @@
           "Google News RSS"
         ],
         "coverage_gaps": [
-          "Dati Understat non disponibili nel blocco di input",
-          "Nome dell'arbitro effettivo non ancora designato"
+          "Valori xG non disponibili nei dati ufficiali di riferimento.",
+          "Arbitro effettivo dell'incontro non ancora ufficializzato nelle fonti RSS."
         ],
         "pre_kickoff_checks": [
-          "Verificare l'effettivo recupero di De Bruyne e Anguissa nelle formazioni ufficiali"
+          "Verificare la presenza effettiva in campo di De Bruyne e Anguissa tra le file del Napoli.",
+          "Confermare le scelte tattiche definitive di Allegri e Abate al momento delle formazioni ufficiali."
         ]
       }
     }
