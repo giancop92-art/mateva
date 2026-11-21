@@ -2,6 +2,8 @@ import json
 import os
 import re
 import time
+import urllib.parse
+import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, timezone
 from io import StringIO
 
@@ -17,6 +19,7 @@ UNDERSTAT_URL = f"https://understat.com/league/Serie_A/{SEASON_YEAR}"
 ESPN_SCOREBOARD_URL = "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard"
 DAYS_AHEAD = 5
 MODEL_NAME = "gemini-3.8-flash"
+SLEEP_SECONDS = 15  # Rispetta il limite di 5 RPM sul piano gratuito
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
@@ -28,8 +31,7 @@ def fetch_football_data():
     try:
         r = requests.get(FD_CSV_URL, headers=HEADERS, timeout=20)
         r.raise_for_status()
-        df = pd.read_csv(StringIO(r.text))
-        return df
+        return pd.read_csv(StringIO(r.text))
     except Exception as e:
         print(f"[WARN] Impossibile scaricare football-data.co.uk: {e}")
         return pd.DataFrame()
@@ -113,11 +115,31 @@ def get_upcoming_fixtures(dates_data):
     return fixtures
 
 
+def fetch_google_news_context(home, away, max_items=8):
+    """Recupera gratuitamente notizie recenti (probabili formazioni, infortuni, arbitro) via Google News RSS."""
+    query = f"{home} {away} probabili formazioni infortuni arbitro Serie A"
+    url = f"https://news.google.com/rss/search?q={urllib.parse.quote(query)}&hl=it&gl=IT&ceid=IT:it"
+    headlines = []
+    try:
+        r = requests.get(url, headers=HEADERS, timeout=15)
+        r.raise_for_status()
+        root = ET.fromstring(r.content)
+        for item in root.findall(".//item")[:max_items]:
+            title = item.findtext("title", "").strip()
+            pub_date = item.findtext("pubDate", "").strip()
+            if title:
+                headlines.append(f"- {title} ({pub_date})")
+    except Exception as e:
+        print(f"   [WARN] Google News RSS non disponibile per {home}-{away}: {e}")
+
+    return "\n".join(headlines) if headlines else "Nessuna notizia recente estratta via RSS."
+
+
 def summarize_team_stats(team_name, fd_df, teams_data):
     """Calcola un riepilogo numerico pulito per la squadra da passare a Gemini."""
     summary = {"team": team_name, "understat": {}, "football_data": {}}
 
-    # Statistiche Understat (xG, xGA, npxG, PPDA, Deep)
+    # Statistiche Understat (xG, xGA, npxG, Deep)
     for _, tdata in teams_data.items():
         if tdata.get("title", "").lower() == team_name.lower():
             hist = tdata.get("history", [])
@@ -160,7 +182,7 @@ def summarize_team_stats(team_name, fd_df, teams_data):
     return summary
 
 
-def build_prompt(fixture, home_stats, away_stats):
+def build_prompt(fixture, home_stats, away_stats, news_context):
     """Costruisce il prompt con le regole di football-match-evaluator-v3 e lo schema JSON esatto."""
     slug = re.sub(r"[^a-z0-9]+", "-", f"{fixture['date_slug']}-{fixture['home']}-{fixture['away']}".lower()).strip("-")
 
@@ -173,11 +195,8 @@ DATI NUMERICI GIA' ESTRATTI (usali come base oggettiva):
 - Casa: {json.dumps(home_stats, ensure_ascii=False)}
 - Trasferta: {json.dumps(away_stats, ensure_ascii=False)}
 
-USA GOOGLE SEARCH per verificare le informazioni dinamiche aggiornate:
-1. Classifica aggiornata, giornata di campionato e stadio.
-2. Arbitro designato per questa partita e sua severità (cartellini/rigori).
-3. Infortuni confermati, squalifiche, ballottaggi, probabili formazioni e fatica da coppe europee.
-4. Giocatori chiave (rigoristi, migliori finalizzatori, giocatori più esposti a cartellini).
+NOTIZIE RECENTI (Google News RSS - probabili formazioni, assenze, arbitro):
+{news_context}
 
 REGOLE DI VALUTAZIONE:
 - Esito 1X2: incrocia differenziale xG/xGA, over/under-performance, ingressi in area (deep), forma, assenze e calendario. La somma dei valori 'mid' di home_win + draw + away_win DEVE fare 100.
@@ -186,9 +205,9 @@ REGOLE DI VALUTAZIONE:
 - Cartellini: valuta falli, pressing, transizioni e severità arbitro.
 - Rigori: valuta ingressi in area e storico rigori.
 - Giocatori: indica 2-3 possibili marcatori e 2-3 possibili ammoniti con probabilità realistiche.
-- Non inventare dati mancanti: se un numero non è disponibile usa null e segnalalo in coverage_gaps.
+- Non inventare dati mancanti: se un numero (es. media arbitro o posizione esatta) non è ricavabile dai dati forniti, usa null e segnalalo in coverage_gaps.
 
-RISPONDI ESCLUSIVAMENTE CON UN SINGOLO OGGETTO JSON VALIDO (nessun testo prima o dopo, nessun blocco markdown ```json) che rispetti ESATTAMENTE questa struttura:
+RISPONDI ESCLUSIVAMENTE CON UN SINGOLO OGGETTO JSON VALIDO che rispetti ESATTAMENTE questa struttura:
 {{
   "id": "{slug}",
   "competition": "Serie A",
@@ -315,8 +334,8 @@ RISPONDI ESCLUSIVAMENTE CON UN SINGOLO OGGETTO JSON VALIDO (nessun testo prima o
     ]
   }},
   "data_quality": {{
-    "confidence": "high",
-    "sources_used": ["Understat", "football-data.co.uk", "Google Search"],
+    "confidence": "medium",
+    "sources_used": ["Understat", "football-data.co.uk", "Google News RSS"],
     "coverage_gaps": ["Eventuali limiti dati"],
     "pre_kickoff_checks": ["Verifiche 1h prima del match"]
   }}
@@ -356,14 +375,15 @@ def main():
         print(f"[{idx}/{len(fixtures)}] Analisi {fix['home']} vs {fix['away']}...")
         h_stats = summarize_team_stats(fix["home"], fd_df, teams_data)
         a_stats = summarize_team_stats(fix["away"], fd_df, teams_data)
-        prompt = build_prompt(fix, h_stats, a_stats)
+        news_context = fetch_google_news_context(fix["home"], fix["away"])
+        prompt = build_prompt(fix, h_stats, a_stats, news_context)
 
         try:
             response = client.models.generate_content(
                 model=MODEL_NAME,
                 contents=prompt,
                 config=types.GenerateContentConfig(
-                    tools=[types.Tool(google_search=types.GoogleSearch())],
+                    response_mime_type="application/json",
                     temperature=0.2,
                 ),
             )
@@ -373,9 +393,9 @@ def main():
         except Exception as e:
             print(f"   -> [ERRORE] {fix['home']} vs {fix['away']}: {e}")
 
-        # Pausa per rispettare il free tier di Google AI Studio
+        # Pausa per rispettare i 5 RPM del piano gratuito
         if idx < len(fixtures):
-            time.sleep(10)
+            time.sleep(SLEEP_SECONDS)
 
     output = {
         "schema_version": "3.0",
