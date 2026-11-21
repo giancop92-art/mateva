@@ -16,7 +16,7 @@ FD_CSV_URL = "https://www.football-data.co.uk/mmz4281/2627/I1.csv"
 UNDERSTAT_URL = f"https://understat.com/league/Serie_A/{SEASON_YEAR}"
 ESPN_SCOREBOARD_URL = "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard"
 DAYS_AHEAD = 5
-MODEL_NAME = "gemini-3.0-flash"
+MODEL_NAME = "gemini-3.8-flash"
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
