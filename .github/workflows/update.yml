@@ -1,0 +1,40 @@
+name: Aggiorna Analisi Serie A
+
+on:
+  workflow_dispatch: # Ti permette di lanciarlo a mano quando vuoi
+  schedule:
+    # Gira in automatico ogni Venerdì alle 18:00 UTC e Sabato alle 09:00 UTC
+    - cron: "0 18 * * 5"
+    - cron: "0 9 * * 6"
+
+permissions:
+  contents: write
+
+jobs:
+  update-matches:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Scarica repository
+        uses: actions/checkout@v4
+
+      - name: Configura Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Installa dipendenze
+        run: pip install -r requirements.txt
+
+      - name: Genera matches.json con Gemini
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python generate_matches.py
+
+      - name: Salva matches.json nel repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add matches.json
+          git diff --staged --quiet || git commit -m "Aggiornamento automatico matches.json"
+          git push
