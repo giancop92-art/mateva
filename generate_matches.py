@@ -18,7 +18,13 @@ FD_CSV_URL = "https://www.football-data.co.uk/mmz4281/2627/I1.csv"
 UNDERSTAT_URL = f"https://understat.com/league/Serie_A/{SEASON_YEAR}"
 ESPN_SCOREBOARD_URL = "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/scoreboard"
 DAYS_AHEAD = 5
-MODEL_NAME = "gemini-3.8-flash"
+
+# Lista modelli con fallback automatico in caso di 503 (high demand) o 429
+MODELS_FALLBACK = [
+    "gemini-3.8-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-3.1-flash-lite",
+]
 SLEEP_SECONDS = 15  # Rispetta il limite di 5 RPM sul piano gratuito
 
 HEADERS = {
@@ -356,6 +362,27 @@ def parse_json_response(text):
     return json.loads(cleaned[start : end + 1])
 
 
+def generate_with_fallback(client, prompt):
+    """Prova i modelli in MODELS_FALLBACK in sequenza se uno è sovraccarico (503) o esaurito (429)."""
+    last_error = None
+    for model_name in MODELS_FALLBACK:
+        try:
+            response = client.models.generate_content(
+                model=model_name,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    temperature=0.2,
+                ),
+            )
+            return parse_json_response(response.text), model_name
+        except Exception as e:
+            last_error = e
+            print(f"   [WARN] {model_name} non disponibile ({str(e)[:90]}...), provo fallback...")
+            time.sleep(3)
+    raise last_error
+
+
 def main():
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
@@ -379,21 +406,13 @@ def main():
         prompt = build_prompt(fix, h_stats, a_stats, news_context)
 
         try:
-            response = client.models.generate_content(
-                model=MODEL_NAME,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    response_mime_type="application/json",
-                    temperature=0.2,
-                ),
-            )
-            match_obj = parse_json_response(response.text)
+            match_obj, used_model = generate_with_fallback(client, prompt)
             analyzed_matches.append(match_obj)
-            print(f"   -> OK: {fix['home']} vs {fix['away']}")
+            print(f"   -> OK ({used_model}): {fix['home']} vs {fix['away']}")
         except Exception as e:
             print(f"   -> [ERRORE] {fix['home']} vs {fix['away']}: {e}")
 
-        # Pausa per rispettare i 5 RPM del piano gratuito
+        # Pausa per rispettare i limiti RPM del piano gratuito
         if idx < len(fixtures):
             time.sleep(SLEEP_SECONDS)
 
