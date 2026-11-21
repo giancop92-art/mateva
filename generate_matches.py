@@ -31,16 +31,186 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 }
 
+# Mappa normalizzazione nomi ESPN/Understat -> football-data.co.uk
+TEAM_ALIASES = {
+    "as roma": "roma",
+    "ac milan": "milan",
+    "inter milan": "inter",
+    "internazionale": "inter",
+    "hellas verona": "verona",
+    "ssc napoli": "napoli",
+    "ss lazio": "lazio",
+    "ac monza": "monza",
+    "us lecce": "lecce",
+    "udinese calcio": "udinese",
+    "bologna fc": "bologna",
+    "acf fiorentina": "fiorentina",
+    "atalanta bc": "atalanta",
+    "torino fc": "torino",
+    "genoa cfc": "genoa",
+    "cagliari calcio": "cagliari",
+    "parma calcio": "parma",
+    "como 1907": "como",
+    "us sassuolo": "sassuolo",
+    "sassuolo calcio": "sassuolo",
+    "pisa sc": "pisa",
+    "us cremonese": "cremonese",
+    "frosinone calcio": "frosinone",
+    "venezia fc": "venezia",
+    "empoli fc": "empoli",
+}
+
+
+def normalize_team_name(name):
+    """Normalizza il nome squadra per fare match affidabile con football-data.co.uk."""
+    if not name:
+        return ""
+    low = name.strip().lower()
+    if low in TEAM_ALIASES:
+        return TEAM_ALIASES[low]
+    for prefix in ("ac ", "as ", "fc ", "us ", "ss ", "ssc ", "acf ", "hellas "):
+        if low.startswith(prefix):
+            low = low[len(prefix):].strip()
+    return low
+
 
 def fetch_football_data():
     """Scarica il CSV stagionale della Serie A da football-data.co.uk."""
     try:
         r = requests.get(FD_CSV_URL, headers=HEADERS, timeout=20)
         r.raise_for_status()
-        return pd.read_csv(StringIO(r.text))
+        df = pd.read_csv(StringIO(r.text))
+        df = df.dropna(subset=["HomeTeam", "AwayTeam", "FTHG", "FTAG"])
+        return df
     except Exception as e:
         print(f"[WARN] Impossibile scaricare football-data.co.uk: {e}")
         return pd.DataFrame()
+
+
+def compute_league_table_and_stats(fd_df):
+    """Calcola classifica reale, forma e split Casa/Trasferta per tutte le squadre da I1.csv."""
+    if fd_df.empty:
+        return {}
+
+    teams = {}
+
+    def ensure_team(t_norm, display_name):
+        if t_norm not in teams:
+            teams[t_norm] = {
+                "display_name": display_name,
+                "played": 0,
+                "points": 0,
+                "gf": 0,
+                "ga": 0,
+                "form": [],
+                "home": {"played": 0, "pts": 0, "gf": 0, "ga": 0, "corners": [], "cards": [], "shots": [], "sot": []},
+                "away": {"played": 0, "pts": 0, "gf": 0, "ga": 0, "corners": [], "cards": [], "shots": [], "sot": []},
+            }
+
+    for _, row in fd_df.iterrows():
+        h_raw = str(row["HomeTeam"]).strip()
+        a_raw = str(row["AwayTeam"]).strip()
+        h = normalize_team_name(h_raw)
+        a = normalize_team_name(a_raw)
+        ensure_team(h, h_raw)
+        ensure_team(a, a_raw)
+
+        hg = int(row["FTHG"])
+        ag = int(row["FTAG"])
+
+        if hg > ag:
+            hp, ap, hf, af = 3, 0, "W", "L"
+        elif hg < ag:
+            hp, ap, hf, af = 0, 3, "L", "W"
+        else:
+            hp, ap, hf, af = 1, 1, "D", "D"
+
+        # Aggiorna totali
+        teams[h]["played"] += 1
+        teams[h]["points"] += hp
+        teams[h]["gf"] += hg
+        teams[h]["ga"] += ag
+        teams[h]["form"].append(hf)
+
+        teams[a]["played"] += 1
+        teams[a]["points"] += ap
+        teams[a]["gf"] += ag
+        teams[a]["ga"] += hg
+        teams[a]["form"].append(af)
+
+        # Aggiorna split Casa
+        teams[h]["home"]["played"] += 1
+        teams[h]["home"]["pts"] += hp
+        teams[h]["home"]["gf"] += hg
+        teams[h]["home"]["ga"] += ag
+        if pd.notna(row.get("HC")):
+            teams[h]["home"]["corners"].append(float(row["HC"]))
+        if pd.notna(row.get("HY")):
+            teams[h]["home"]["cards"].append(float(row["HY"]) + (float(row["HR"]) if pd.notna(row.get("HR")) else 0.0))
+        if pd.notna(row.get("HS")):
+            teams[h]["home"]["shots"].append(float(row["HS"]))
+        if pd.notna(row.get("HST")):
+            teams[h]["home"]["sot"].append(float(row["HST"]))
+
+        # Aggiorna split Trasferta
+        teams[a]["away"]["played"] += 1
+        teams[a]["away"]["pts"] += ap
+        teams[a]["away"]["gf"] += ag
+        teams[a]["away"]["ga"] += hg
+        if pd.notna(row.get("AC")):
+            teams[a]["away"]["corners"].append(float(row["AC"]))
+        if pd.notna(row.get("AY")):
+            teams[a]["away"]["cards"].append(float(row["AY"]) + (float(row["AR"]) if pd.notna(row.get("AR")) else 0.0))
+        if pd.notna(row.get("AS")):
+            teams[a]["away"]["shots"].append(float(row["AS"]))
+        if pd.notna(row.get("AST")):
+            teams[a]["away"]["sot"].append(float(row["AST"]))
+
+    # Ordina classifica (punti, diff reti, gol fatti)
+    ranked = sorted(
+        teams.items(),
+        key=lambda kv: (kv[1]["points"], kv[1]["gf"] - kv[1]["ga"], kv[1]["gf"]),
+        reverse=True,
+    )
+
+    def avg(lst):
+        return round(sum(lst) / len(lst), 2) if lst else None
+
+    result = {}
+    for pos, (t_norm, d) in enumerate(ranked, start=1):
+        hp = d["home"]["played"]
+        ap = d["away"]["played"]
+        result[t_norm] = {
+            "position": pos,
+            "played": d["played"],
+            "points": d["points"],
+            "goals_for": d["gf"],
+            "goals_against": d["ga"],
+            "recent_form": d["form"][-5:],
+            "home_split": {
+                "label": "Casa",
+                "played": hp,
+                "points_per_game": round(d["home"]["pts"] / hp, 2) if hp else None,
+                "gf_per_game": round(d["home"]["gf"] / hp, 2) if hp else None,
+                "ga_per_game": round(d["home"]["ga"] / hp, 2) if hp else None,
+                "corners_for_avg": avg(d["home"]["corners"]),
+                "cards_avg": avg(d["home"]["cards"]),
+                "shots_avg": avg(d["home"]["shots"]),
+                "shots_on_target_avg": avg(d["home"]["sot"]),
+            },
+            "away_split": {
+                "label": "Trasferta",
+                "played": ap,
+                "points_per_game": round(d["away"]["pts"] / ap, 2) if ap else None,
+                "gf_per_game": round(d["away"]["gf"] / ap, 2) if ap else None,
+                "ga_per_game": round(d["away"]["ga"] / ap, 2) if ap else None,
+                "corners_for_avg": avg(d["away"]["corners"]),
+                "cards_avg": avg(d["away"]["cards"]),
+                "shots_avg": avg(d["away"]["shots"]),
+                "shots_on_target_avg": avg(d["away"]["sot"]),
+            },
+        }
+    return result
 
 
 def extract_understat_json(html, var_name):
@@ -54,18 +224,31 @@ def extract_understat_json(html, var_name):
 
 
 def fetch_understat_data():
-    """Recupera calendario, metriche squadra (xG, xGA, PPDA) e giocatori da Understat."""
+    """Recupera calendario e xG/xGA da Understat (se accessibile)."""
     try:
         r = requests.get(UNDERSTAT_URL, headers=HEADERS, timeout=25)
         r.raise_for_status()
         html = r.text
         dates_data = extract_understat_json(html, "datesData") or []
         teams_data = extract_understat_json(html, "teamsData") or {}
-        players_data = extract_understat_json(html, "playersData") or []
-        return dates_data, teams_data, players_data
+        return dates_data, teams_data
     except Exception as e:
         print(f"[WARN] Impossibile scaricare Understat: {e}")
-        return [], {}, []
+        return [], {}
+
+
+def get_understat_xg(team_name, teams_data):
+    """Restituisce xG/gara e xGA/gara da Understat se presenti, altrimenti None."""
+    target = normalize_team_name(team_name)
+    for _, tdata in teams_data.items():
+        if normalize_team_name(tdata.get("title", "")) == target:
+            hist = tdata.get("history", [])
+            n = len(hist)
+            if n > 0:
+                xg = sum(float(x.get("xG", 0)) for x in hist)
+                xga = sum(float(x.get("xGA", 0)) for x in hist)
+                return round(xg / n, 2), round(xga / n, 2)
+    return None, None
 
 
 def get_upcoming_fixtures(dates_data):
@@ -96,7 +279,7 @@ def get_upcoming_fixtures(dates_data):
     if fixtures:
         return fixtures
 
-    # 2. Fallback pubblico da ESPN se Understat non restituisce gare
+    # 2. Fallback pubblico da ESPN
     try:
         r = requests.get(ESPN_SCOREBOARD_URL, headers=HEADERS, timeout=20)
         r.raise_for_status()
@@ -121,7 +304,7 @@ def get_upcoming_fixtures(dates_data):
     return fixtures
 
 
-def fetch_google_news_context(home, away, max_items=8):
+def fetch_google_news_context(home, away, max_items=10):
     """Recupera gratuitamente notizie recenti (probabili formazioni, infortuni, arbitro) via Google News RSS."""
     query = f"{home} {away} probabili formazioni infortuni arbitro Serie A"
     url = f"https://news.google.com/rss/search?q={urllib.parse.quote(query)}&hl=it&gl=IT&ceid=IT:it"
@@ -141,55 +324,51 @@ def fetch_google_news_context(home, away, max_items=8):
     return "\n".join(headlines) if headlines else "Nessuna notizia recente estratta via RSS."
 
 
-def summarize_team_stats(team_name, fd_df, teams_data):
-    """Calcola un riepilogo numerico pulito per la squadra da passare a Gemini."""
-    summary = {"team": team_name, "understat": {}, "football_data": {}}
+def build_team_payload(team_name, side, league_table, teams_data):
+    """Costruisce il blocco dati reali verificati per una squadra."""
+    norm = normalize_team_name(team_name)
+    stats = league_table.get(norm)
+    xg, xga = get_understat_xg(team_name, teams_data)
 
-    # Statistiche Understat (xG, xGA, npxG, Deep)
-    for _, tdata in teams_data.items():
-        if tdata.get("title", "").lower() == team_name.lower():
-            hist = tdata.get("history", [])
-            n = len(hist)
-            if n > 0:
-                xg = sum(float(x.get("xG", 0)) for x in hist)
-                xga = sum(float(x.get("xGA", 0)) for x in hist)
-                npxg = sum(float(x.get("npxG", 0)) for x in hist)
-                scored = sum(int(x.get("scored", 0)) for x in hist)
-                missed = sum(int(x.get("missed", 0)) for x in hist)
-                pts = sum(int(x.get("pts", 0)) for x in hist)
-                deep = sum(int(x.get("deep", 0)) for x in hist)
-                form = [x.get("result", "").upper() for x in hist[-5:]]
-                summary["understat"] = {
-                    "played": n,
-                    "points": pts,
-                    "goals_for": scored,
-                    "goals_against": missed,
-                    "xg_per_game": round(xg / n, 2),
-                    "xga_per_game": round(xga / n, 2),
-                    "npxg_per_game": round(npxg / n, 2),
-                    "deep_per_game": round(deep / n, 1),
-                    "recent_form": form,
-                }
-            break
+    if not stats:
+        return {
+            "name": team_name,
+            "position": None,
+            "points": None,
+            "goals_for": None,
+            "goals_against": None,
+            "xg_per_game": xg,
+            "xga_per_game": xga,
+            "recent_form": [],
+            "split_stats": {
+                "label": "Casa" if side == "home" else "Trasferta",
+                "played": None,
+                "points_per_game": None,
+                "gf_per_game": None,
+                "ga_per_game": None,
+                "corners_for_avg": None,
+                "cards_avg": None,
+                "shots_avg": None,
+                "shots_on_target_avg": None,
+            },
+        }
 
-    # Statistiche football-data.co.uk (corner, falli, gialli)
-    if not fd_df.empty and "HomeTeam" in fd_df.columns:
-        mask_h = fd_df["HomeTeam"].str.lower().str.contains(team_name.lower()[:5], na=False)
-        mask_a = fd_df["AwayTeam"].str.lower().str.contains(team_name.lower()[:5], na=False)
-        home_df = fd_df[mask_h]
-        away_df = fd_df[mask_a]
-        if len(home_df) > 0:
-            summary["football_data"]["home_corners_avg"] = round(home_df["HC"].mean(), 2) if "HC" in home_df else None
-            summary["football_data"]["home_yellows_avg"] = round(home_df["HY"].mean(), 2) if "HY" in home_df else None
-        if len(away_df) > 0:
-            summary["football_data"]["away_corners_avg"] = round(away_df["AC"].mean(), 2) if "AC" in away_df else None
-            summary["football_data"]["away_yellows_avg"] = round(away_df["AY"].mean(), 2) if "AY" in away_df else None
-
-    return summary
+    split_key = "home_split" if side == "home" else "away_split"
+    return {
+        "name": team_name,
+        "position": stats["position"],
+        "points": stats["points"],
+        "goals_for": stats["goals_for"],
+        "goals_against": stats["goals_against"],
+        "xg_per_game": xg,
+        "xga_per_game": xga,
+        "recent_form": stats["recent_form"],
+        "split_stats": stats[split_key],
+    }
 
 
-def build_prompt(fixture, home_stats, away_stats, news_context):
-    """Costruisce il prompt con le regole di football-match-evaluator-v3 e lo schema JSON esatto."""
+def build_prompt(fixture, home_data, away_data, news_context):
+    """Costruisce il prompt senza numeri di esempio finti e con regole anti-allucinazione."""
     slug = re.sub(r"[^a-z0-9]+", "-", f"{fixture['date_slug']}-{fixture['home']}-{fixture['away']}".lower()).strip("-")
 
     return f"""
@@ -197,156 +376,180 @@ Sei un analista calcistico che applica rigorosamente la metodologia 'football-ma
 
 Analizza la partita: {fixture['home']} vs {fixture['away']} (Kickoff: {fixture['kickoff_iso']}).
 
-DATI NUMERICI GIA' ESTRATTI (usali come base oggettiva):
-- Casa: {json.dumps(home_stats, ensure_ascii=False)}
-- Trasferta: {json.dumps(away_stats, ensure_ascii=False)}
+DATI REALI VERIFICATI DA FOOTBALL-DATA.CO.UK (USALI OBBLIGATORIAMENTE, NON MODIFICARLI MAI):
+- CASA: {json.dumps(home_data, ensure_ascii=False)}
+- TRASFERTA: {json.dumps(away_data, ensure_ascii=False)}
 
 NOTIZIE RECENTI (Google News RSS - probabili formazioni, assenze, arbitro):
 {news_context}
 
-REGOLE DI VALUTAZIONE:
-- Esito 1X2: incrocia differenziale xG/xGA, over/under-performance, ingressi in area (deep), forma, assenze e calendario. La somma dei valori 'mid' di home_win + draw + away_win DEVE fare 100.
-- Gol: valuta npxG, palle inattive, transizioni e solidità difensiva. over_2_5.mid + under_2_5.mid = 100; btts_yes.mid + btts_no.mid = 100.
-- Corner: valuta ampiezza, blocco basso vs dominio territoriale e medie corner.
-- Cartellini: valuta falli, pressing, transizioni e severità arbitro.
-- Rigori: valuta ingressi in area e storico rigori.
-- Giocatori: indica 2-3 possibili marcatori e 2-3 possibili ammoniti con probabilità realistiche.
-- Non inventare dati mancanti: se un numero (es. media arbitro o posizione esatta) non è ricavabile dai dati forniti, usa null e segnalalo in coverage_gaps.
+REGOLE TASSATIVE:
+1. Usa ESATTAMENTE i numeri reali forniti sopra per classifica, punti, gol, forma, split, tiri, corner e cartellini. Se un campo è null (es. xg_per_game), lascialo null.
+2. Esito 1X2: basa le probabilità sul divario reale di classifica, punti/gara, gol fatti/subiti, tiri in porta e forma. La somma dei 'mid' di home_win + draw + away_win DEVE fare 100.
+3. Gol: over_2_5.mid + under_2_5.mid = 100; btts_yes.mid + btts_no.mid = 100.
+4. Corner e Cartellini: usa le medie reali di corner e cartellini fornite negli split Casa/Trasferta.
+5. GIOCATORI: VIETATO scrivere nomi generici o segnaposto come "Attaccante Torino", "Como Midfielder", "Cagliari Striker", "Difensore X". Inserisci SOLO nomi e cognomi reali di calciatori effettivamente presenti nelle notizie RSS o nella rosa attuale; se non hai nomi certi, lascia l'array vuoto [].
+6. Scrivi tutti i testi (drivers, anomalies, coverage_gaps, pre_kickoff_checks) in ITALIANO.
 
-RISPONDI ESCLUSIVAMENTE CON UN SINGOLO OGGETTO JSON VALIDO che rispetti ESATTAMENTE questa struttura:
+RISPONDI ESCLUSIVAMENTE CON UN SINGOLO OGGETTO JSON VALIDO con questa struttura esatta:
 {{
   "id": "{slug}",
   "competition": "Serie A",
   "context_type": "domestic_league",
-  "matchday": "es. 12ª Giornata",
+  "matchday": "<stringa es. 12ª Giornata>",
   "kickoff_iso": "{fixture['kickoff_iso']}",
-  "venue": "Nome Stadio",
+  "venue": "<nome stadio>",
   "referee": {{
-    "name": "Nome Arbitro o Da designare",
-    "cards_per_game": 4.2,
-    "penalties_rate_pct": 25,
-    "strictness": "low|medium|high"
+    "name": "<nome arbitro se presente nelle notizie, altrimenti Da verificare>",
+    "cards_per_game": null,
+    "penalties_rate_pct": null,
+    "strictness": null
   }},
   "teams": {{
     "home": {{
       "name": "{fixture['home']}",
-      "position": 10,
-      "points": 15,
-      "goals_for": 12,
-      "goals_against": 14,
-      "xg_per_game": 1.25,
-      "xga_per_game": 1.40,
-      "recent_form": ["W", "D", "L", "W", "L"],
+      "position": "<intero dai dati reali>",
+      "points": "<intero dai dati reali>",
+      "goals_for": "<intero dai dati reali>",
+      "goals_against": "<intero dai dati reali>",
+      "xg_per_game": "<float dai dati reali o null>",
+      "xga_per_game": "<float dai dati reali o null>",
+      "recent_form": ["<dai dati reali>"],
       "split_stats": {{
         "label": "Casa",
-        "played": 5,
-        "points_per_game": 1.4,
-        "gf_per_game": 1.2,
-        "ga_per_game": 1.0,
-        "corners_for_avg": 4.8,
-        "cards_avg": 2.1
+        "played": "<intero>",
+        "points_per_game": "<float>",
+        "gf_per_game": "<float>",
+        "ga_per_game": "<float>",
+        "corners_for_avg": "<float>",
+        "cards_avg": "<float>"
       }},
       "absences": {{
-        "confirmed_out": ["Giocatore A"],
-        "doubtful": ["Giocatore B"]
+        "confirmed_out": ["<solo se citati nelle notizie>"],
+        "doubtful": ["<solo se citati nelle notizie>"]
       }},
-      "rest_days": 7,
+      "rest_days": null,
       "upcoming_cup_fixture": null,
-      "probable_formation": "3-5-2"
+      "probable_formation": "<modulo o null>"
     }},
     "away": {{
       "name": "{fixture['away']}",
-      "position": 4,
-      "points": 22,
-      "goals_for": 21,
-      "goals_against": 10,
-      "xg_per_game": 1.95,
-      "xga_per_game": 0.95,
-      "recent_form": ["W", "W", "D", "W", "L"],
+      "position": "<intero dai dati reali>",
+      "points": "<intero dai dati reali>",
+      "goals_for": "<intero dai dati reali>",
+      "goals_against": "<intero dai dati reali>",
+      "xg_per_game": "<float dai dati reali o null>",
+      "xga_per_game": "<float dai dati reali o null>",
+      "recent_form": ["<dai dati reali>"],
       "split_stats": {{
         "label": "Trasferta",
-        "played": 5,
-        "points_per_game": 2.0,
-        "gf_per_game": 1.8,
-        "ga_per_game": 0.8,
-        "corners_for_avg": 5.5,
-        "cards_avg": 1.8
+        "played": "<intero>",
+        "points_per_game": "<float>",
+        "gf_per_game": "<float>",
+        "ga_per_game": "<float>",
+        "corners_for_avg": "<float>",
+        "cards_avg": "<float>"
       }},
       "absences": {{
-        "confirmed_out": [],
-        "doubtful": []
+        "confirmed_out": ["<solo se citati nelle notizie>"],
+        "doubtful": ["<solo se citati nelle notizie>"]
       }},
-      "rest_days": 7,
+      "rest_days": null,
       "upcoming_cup_fixture": null,
-      "probable_formation": "4-3-3"
+      "probable_formation": "<modulo o null>"
     }}
   }},
   "analysis": {{
     "1_outcome_1x2": {{
-      "home_win": {{ "min": 25, "max": 29, "mid": 27.0 }},
-      "draw": {{ "min": 26, "max": 30, "mid": 28.0 }},
-      "away_win": {{ "min": 43, "max": 47, "mid": 45.0 }},
-      "drivers": ["Driver 1", "Driver 2"],
-      "anomalies": ["Eventuale anomalia statistica"]
+      "home_win": {{ "min": 0, "max": 0, "mid": 0.0 }},
+      "draw": {{ "min": 0, "max": 0, "mid": 0.0 }},
+      "away_win": {{ "min": 0, "max": 0, "mid": 0.0 }},
+      "drivers": ["<driver in italiano basato sui numeri reali>"],
+      "anomalies": ["<eventuale anomalia in italiano>"]
     }},
     "2_goals": {{
-      "over_2_5": {{ "min": 50, "max": 55, "mid": 52.5 }},
-      "under_2_5": {{ "min": 45, "max": 50, "mid": 47.5 }},
-      "btts_yes": {{ "min": 48, "max": 53, "mid": 50.5 }},
-      "btts_no": {{ "min": 47, "max": 52, "mid": 49.5 }},
-      "drivers": ["Driver gol 1", "Driver gol 2"]
+      "over_2_5": {{ "min": 0, "max": 0, "mid": 0.0 }},
+      "under_2_5": {{ "min": 0, "max": 0, "mid": 0.0 }},
+      "btts_yes": {{ "min": 0, "max": 0, "mid": 0.0 }},
+      "btts_no": {{ "min": 0, "max": 0, "mid": 0.0 }},
+      "drivers": ["<driver gol in italiano>"]
     }},
     "3_corners": {{
       "line": 9.5,
-      "over_line": {{ "min": 48, "max": 53, "mid": 50.5 }},
-      "under_line": {{ "min": 47, "max": 52, "mid": 49.5 }},
-      "most_corners_team": "away",
-      "most_corners_prob": {{ "min": 58, "max": 63, "mid": 60.5 }},
-      "drivers": ["Driver corner 1"]
+      "over_line": {{ "min": 0, "max": 0, "mid": 0.0 }},
+      "under_line": {{ "min": 0, "max": 0, "mid": 0.0 }},
+      "most_corners_team": "home|away",
+      "most_corners_prob": {{ "min": 0, "max": 0, "mid": 0.0 }},
+      "drivers": ["<driver corner in italiano>"]
     }},
     "4_team_cards": {{
       "line": 3.5,
-      "over_line": {{ "min": 55, "max": 60, "mid": 57.5 }},
-      "under_line": {{ "min": 40, "max": 45, "mid": 42.5 }},
-      "most_cards_team": "home",
-      "most_cards_prob": {{ "min": 54, "max": 59, "mid": 56.5 }},
-      "drivers": ["Driver cartellini 1"]
+      "over_line": {{ "min": 0, "max": 0, "mid": 0.0 }},
+      "under_line": {{ "min": 0, "max": 0, "mid": 0.0 }},
+      "most_cards_team": "home|away",
+      "most_cards_prob": {{ "min": 0, "max": 0, "mid": 0.0 }},
+      "drivers": ["<driver cartellini in italiano>"]
     }},
     "5_penalties": {{
-      "penalty_yes": {{ "min": 22, "max": 27, "mid": 24.5 }},
-      "favored_team": "away",
-      "drivers": ["Driver rigori 1"]
+      "penalty_yes": {{ "min": 0, "max": 0, "mid": 0.0 }},
+      "favored_team": "home|away",
+      "drivers": ["<driver rigori in italiano>"]
     }},
     "6_player_goals": [
       {{
-        "player": "Nome Giocatore",
-        "team": "away",
-        "role": "ATT",
+        "player": "<Nome Cognome reale>",
+        "team": "home|away",
+        "role": "ATT|CC",
         "expected_starter": true,
-        "set_piece_duty": "penalties",
-        "prob": {{ "min": 35, "max": 40, "mid": 37.5 }},
-        "key_metric": "Sintesi xG/ruolo"
+        "set_piece_duty": "none|penalties|freekicks",
+        "prob": {{ "min": 0, "max": 0, "mid": 0.0 }},
+        "key_metric": "<motivazione in italiano>"
       }}
     ],
     "7_player_cards": [
       {{
-        "player": "Nome Giocatore",
-        "team": "home",
-        "role": "CC",
+        "player": "<Nome Cognome reale>",
+        "team": "home|away",
+        "role": "DC|CC|TD|TS",
         "cautioned_diffida": false,
-        "prob": {{ "min": 28, "max": 33, "mid": 30.5 }},
-        "key_metric": "Sintesi falli/matchup"
+        "prob": {{ "min": 0, "max": 0, "mid": 0.0 }},
+        "key_metric": "<motivazione in italiano>"
       }}
     ]
   }},
   "data_quality": {{
     "confidence": "medium",
-    "sources_used": ["Understat", "football-data.co.uk", "Google News RSS"],
-    "coverage_gaps": ["Eventuali limiti dati"],
-    "pre_kickoff_checks": ["Verifiche 1h prima del match"]
+    "sources_used": ["football-data.co.uk", "Google News RSS"],
+    "coverage_gaps": ["<limiti reali in italiano>"],
+    "pre_kickoff_checks": ["<verifiche pre-gara in italiano>"]
   }}
 }}
 """
+
+
+def enforce_ground_truth(match_obj, home_data, away_data):
+    """Sovrascrive i dati oggettivi delle squadre con quelli calcolati in Python per impedire allucinazioni."""
+    for side, real_data in (("home", home_data), ("away", away_data)):
+        if side in match_obj.get("teams", {}):
+            t = match_obj["teams"][side]
+            t["name"] = real_data["name"]
+            t["position"] = real_data["position"]
+            t["points"] = real_data["points"]
+            t["goals_for"] = real_data["goals_for"]
+            t["goals_against"] = real_data["goals_against"]
+            t["xg_per_game"] = real_data["xg_per_game"]
+            t["xga_per_game"] = real_data["xga_per_game"]
+            t["recent_form"] = real_data["recent_form"]
+            t["split_stats"] = {
+                "label": real_data["split_stats"]["label"],
+                "played": real_data["split_stats"]["played"],
+                "points_per_game": real_data["split_stats"]["points_per_game"],
+                "gf_per_game": real_data["split_stats"]["gf_per_game"],
+                "ga_per_game": real_data["split_stats"]["ga_per_game"],
+                "corners_for_avg": real_data["split_stats"]["corners_for_avg"],
+                "cards_avg": real_data["split_stats"]["cards_avg"],
+            }
+    return match_obj
 
 
 def parse_json_response(text):
@@ -392,27 +595,29 @@ def main():
 
     print("1. Scaricamento dati Serie A da football-data.co.uk e Understat...")
     fd_df = fetch_football_data()
-    dates_data, teams_data, _ = fetch_understat_data()
+    league_table = compute_league_table_and_stats(fd_df)
+    print(f"   -> Calcolata classifica reale per {len(league_table)} squadre da I1.csv.")
 
+    dates_data, teams_data = fetch_understat_data()
     fixtures = get_upcoming_fixtures(dates_data)
     print(f"2. Trovate {len(fixtures)} partite nei prossimi {DAYS_AHEAD} giorni.")
 
     analyzed_matches = []
     for idx, fix in enumerate(fixtures, start=1):
         print(f"[{idx}/{len(fixtures)}] Analisi {fix['home']} vs {fix['away']}...")
-        h_stats = summarize_team_stats(fix["home"], fd_df, teams_data)
-        a_stats = summarize_team_stats(fix["away"], fd_df, teams_data)
+        h_data = build_team_payload(fix["home"], "home", league_table, teams_data)
+        a_data = build_team_payload(fix["away"], "away", league_table, teams_data)
         news_context = fetch_google_news_context(fix["home"], fix["away"])
-        prompt = build_prompt(fix, h_stats, a_stats, news_context)
+        prompt = build_prompt(fix, h_data, a_data, news_context)
 
         try:
             match_obj, used_model = generate_with_fallback(client, prompt)
+            match_obj = enforce_ground_truth(match_obj, h_data, a_data)
             analyzed_matches.append(match_obj)
             print(f"   -> OK ({used_model}): {fix['home']} vs {fix['away']}")
         except Exception as e:
             print(f"   -> [ERRORE] {fix['home']} vs {fix['away']}: {e}")
 
-        # Pausa per rispettare i limiti RPM del piano gratuito
         if idx < len(fixtures):
             time.sleep(SLEEP_SECONDS)
 
