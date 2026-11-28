@@ -1,5 +1,413 @@
 {
   "schema_version": "3.0",
-  "generated_at": "2026-11-28T01:51:52.218064+01:00",
-  "matches": []
+  "generated_at": "2026-11-28T18:28:05.102175+01:00",
+  "matches": [
+    {
+      "id": "2026-11-28-torino-lazio",
+      "competition": "Serie A",
+      "context_type": "domestic_league",
+      "matchday": "13ª Giornata",
+      "kickoff_iso": "2026-11-28T17:00Z",
+      "venue": "Stadio Olimpico Grande Torino",
+      "referee": {
+        "name": "Da verificare",
+        "cards_per_game": null,
+        "penalties_rate_pct": null,
+        "strictness": null
+      },
+      "teams": {
+        "home": {
+          "name": "Torino",
+          "position": 13,
+          "points": 14,
+          "goals_for": 15,
+          "goals_against": 18,
+          "xg_per_game": null,
+          "xga_per_game": null,
+          "recent_form": [
+            "W",
+            "L",
+            "L",
+            "D",
+            "L"
+          ],
+          "split_stats": {
+            "label": "Casa",
+            "played": 6,
+            "points_per_game": 1.17,
+            "gf_per_game": 1.33,
+            "ga_per_game": 1.83,
+            "corners_for_avg": 3.17,
+            "cards_avg": 0.83
+          },
+          "absences": {
+            "confirmed_out": [],
+            "doubtful": []
+          },
+          "rest_days": null,
+          "upcoming_cup_fixture": null,
+          "probable_formation": null
+        },
+        "away": {
+          "name": "Lazio",
+          "position": 1,
+          "points": 32,
+          "goals_for": 28,
+          "goals_against": 9,
+          "xg_per_game": null,
+          "xga_per_game": null,
+          "recent_form": [
+            "W",
+            "W",
+            "W",
+            "D",
+            "W"
+          ],
+          "split_stats": {
+            "label": "Trasferta",
+            "played": 6,
+            "points_per_game": 2.67,
+            "gf_per_game": 2.5,
+            "ga_per_game": 0.67,
+            "corners_for_avg": 5.0,
+            "cards_avg": 1.5
+          },
+          "absences": {
+            "confirmed_out": [],
+            "doubtful": []
+          },
+          "rest_days": null,
+          "upcoming_cup_fixture": null,
+          "probable_formation": null
+        }
+      },
+      "analysis": {
+        "1_outcome_1x2": {
+          "home_win": {
+            "min": 20,
+            "max": 30,
+            "mid": 25.0
+          },
+          "draw": {
+            "min": 25,
+            "max": 35,
+            "mid": 30.0
+          },
+          "away_win": {
+            "min": 40,
+            "max": 50,
+            "mid": 45.0
+          },
+          "drivers": [
+            "La Lazio è prima in classifica con 32 punti e un rendimento esterno eccezionale (2.67 punti a partita).",
+            "Il Torino attraversa un momento difficile con 3 sconfitte nelle ultime 5 gare e una media subiti di 1.83 gol in casa."
+          ],
+          "anomalies": [
+            "Il Torino in casa cerca spesso di serrare i ranghi, il che potrebbe frenare parzialmente l'attacco esterno della Lazio."
+          ]
+        },
+        "2_goals": {
+          "over_2_5": {
+            "min": 45,
+            "max": 55,
+            "mid": 50.0
+          },
+          "under_2_5": {
+            "min": 45,
+            "max": 55,
+            "mid": 50.0
+          },
+          "btts_yes": {
+            "min": 48,
+            "max": 58,
+            "mid": 53.0
+          },
+          "btts_no": {
+            "min": 42,
+            "max": 52,
+            "mid": 47.0
+          },
+          "drivers": [
+            "La Lazio vanta un eccellente potenziale offensivo in trasferta (2.5 gol fatti a partita), ma concede pochissimo (0.67 gol subiti).",
+            "Il Torino in casa tende a segnare (1.33 di media) ma mostra evidenti lacune difensive (1.83 gol subiti a partita)."
+          ]
+        },
+        "3_corners": {
+          "line": 9.5,
+          "over_line": {
+            "min": 40,
+            "max": 50,
+            "mid": 45.0
+          },
+          "under_line": {
+            "min": 50,
+            "max": 60,
+            "mid": 55.0
+          },
+          "most_corners_team": "away",
+          "most_corners_prob": {
+            "min": 55,
+            "max": 65,
+            "mid": 60.0
+          },
+          "drivers": [
+            "Il Torino registra una media molto bassa di corner a favore in casa (3.17).",
+            "La Lazio produce una media esterna di 5.0 corner a partita, orientando il favore verso gli ospiti."
+          ]
+        },
+        "4_team_cards": {
+          "line": 3.5,
+          "over_line": {
+            "min": 35,
+            "max": 45,
+            "mid": 40.0
+          },
+          "under_line": {
+            "min": 55,
+            "max": 65,
+            "mid": 60.0
+          },
+          "most_cards_team": "away",
+          "most_cards_prob": {
+            "min": 52,
+            "max": 62,
+            "mid": 57.0
+          },
+          "drivers": [
+            "Le medie cartellini dei singoli split sono piuttosto basse (Torino 0.83, Lazio 1.5 a partita), suggerendo una gara tendenzialmente corretta."
+          ]
+        },
+        "5_penalties": {
+          "penalty_yes": {
+            "min": 25,
+            "max": 35,
+            "mid": 30.0
+          },
+          "favored_team": "away",
+          "drivers": [
+            "La forte pressione territoriale che la Lazio è solita esercitare in trasferta aumenta la probabilità di episodi sanzionabili in area avversaria."
+          ]
+        },
+        "6_player_goals": [],
+        "7_player_cards": []
+      },
+      "data_quality": {
+        "confidence": "medium",
+        "sources_used": [
+          "football-data.co.uk",
+          "Google News RSS"
+        ],
+        "coverage_gaps": [
+          "Mancano dati ufficiali dettagliati sugli xG per partita nel dataset fornito.",
+          "Le notizie RSS non riportano ancora le distinte ufficiali o i dettagli anagrafici specifici per i marcatori di questa giornata."
+        ],
+        "pre_kickoff_checks": [
+          "Verificare la presenza di eventuali infortuni dell'ultima ora dai bollettini ufficiali delle squadre."
+        ]
+      }
+    },
+    {
+      "id": "2026-11-28-internazionale-genoa",
+      "competition": "Serie A",
+      "context_type": "domestic_league",
+      "matchday": "14ª Giornata",
+      "kickoff_iso": "2026-11-28T19:45Z",
+      "venue": "Stadio Giuseppe Meazza",
+      "referee": {
+        "name": "Da verificare",
+        "cards_per_game": null,
+        "penalties_rate_pct": null,
+        "strictness": null
+      },
+      "teams": {
+        "home": {
+          "name": "Internazionale",
+          "position": 3,
+          "points": 29,
+          "goals_for": 32,
+          "goals_against": 17,
+          "xg_per_game": null,
+          "xga_per_game": null,
+          "recent_form": [
+            "W",
+            "W",
+            "L",
+            "W",
+            "D"
+          ],
+          "split_stats": {
+            "label": "Casa",
+            "played": 6,
+            "points_per_game": 3.0,
+            "gf_per_game": 3.17,
+            "ga_per_game": 1.17,
+            "corners_for_avg": 6.0,
+            "cards_avg": 0.83
+          },
+          "absences": {
+            "confirmed_out": [],
+            "doubtful": []
+          },
+          "rest_days": null,
+          "upcoming_cup_fixture": null,
+          "probable_formation": "3-5-2"
+        },
+        "away": {
+          "name": "Genoa",
+          "position": 10,
+          "points": 16,
+          "goals_for": 13,
+          "goals_against": 16,
+          "xg_per_game": null,
+          "xga_per_game": null,
+          "recent_form": [
+            "W",
+            "W",
+            "W",
+            "L",
+            "W"
+          ],
+          "split_stats": {
+            "label": "Trasferta",
+            "played": 5,
+            "points_per_game": 1.2,
+            "gf_per_game": 1.0,
+            "ga_per_game": 1.2,
+            "corners_for_avg": 3.2,
+            "cards_avg": 1.8
+          },
+          "absences": {
+            "confirmed_out": [],
+            "doubtful": []
+          },
+          "rest_days": null,
+          "upcoming_cup_fixture": null,
+          "probable_formation": "3-5-2"
+        }
+      },
+      "analysis": {
+        "1_outcome_1x2": {
+          "home_win": {
+            "min": 60,
+            "max": 75,
+            "mid": 68.0
+          },
+          "draw": {
+            "min": 15,
+            "max": 25,
+            "mid": 20.0
+          },
+          "away_win": {
+            "min": 8,
+            "max": 16,
+            "mid": 12.0
+          },
+          "drivers": [
+            "L'Inter vanta un rendimento casalingo perfetto con 3.0 punti a partita e 3.17 gol segnati di media a San Siro.",
+            "Il Genoa in trasferta mantiene una media di 1.2 punti a partita, evidenziando una maggiore vulnerabilità fuori casa."
+          ],
+          "anomalies": [
+            "Il Genoa arriva da una striscia di 4 vittorie nelle ultime 5 partite, dimostrando ottima forma nonostante il divario in classifica."
+          ]
+        },
+        "2_goals": {
+          "over_2_5": {
+            "min": 55,
+            "max": 68,
+            "mid": 61.5
+          },
+          "under_2_5": {
+            "min": 32,
+            "max": 45,
+            "mid": 38.5
+          },
+          "btts_yes": {
+            "min": 45,
+            "max": 58,
+            "mid": 51.5
+          },
+          "btts_no": {
+            "min": 42,
+            "max": 55,
+            "mid": 48.5
+          },
+          "drivers": [
+            "L'Inter in casa produce una media altissima di tiri (22.5) e gol fatti (3.17), spingendo verso un match con molte reti."
+          ]
+        },
+        "3_corners": {
+          "line": 9.5,
+          "over_line": {
+            "min": 52,
+            "max": 65,
+            "mid": 58.5
+          },
+          "under_line": {
+            "min": 35,
+            "max": 48,
+            "mid": 41.5
+          },
+          "most_corners_team": "home",
+          "most_corners_prob": {
+            "min": 68,
+            "max": 80,
+            "mid": 74.0
+          },
+          "drivers": [
+            "L'Inter batte in media 6.0 corner a partita in casa, mentre il Genoa si ferma a 3.2 in trasferta."
+          ]
+        },
+        "4_team_cards": {
+          "line": 3.5,
+          "over_line": {
+            "min": 40,
+            "max": 55,
+            "mid": 47.5
+          },
+          "under_line": {
+            "min": 45,
+            "max": 60,
+            "mid": 52.5
+          },
+          "most_cards_team": "away",
+          "most_cards_prob": {
+            "min": 55,
+            "max": 70,
+            "mid": 62.5
+          },
+          "drivers": [
+            "Il Genoa in trasferta fa registrare una media di 1.8 cartellini a partita, superiore alla media interna dell'Inter (0.83)."
+          ]
+        },
+        "5_penalties": {
+          "penalty_yes": {
+            "min": 25,
+            "max": 40,
+            "mid": 32.5
+          },
+          "favored_team": "home",
+          "drivers": [
+            "L'elevato volume offensivo dell'Inter all'interno dell'area di rigore (22.5 tiri/gara casalinghi) aumenta la probabilità di penalty a favore."
+          ]
+        },
+        "6_player_goals": [],
+        "7_player_cards": []
+      },
+      "data_quality": {
+        "confidence": "medium",
+        "sources_used": [
+          "football-data.co.uk",
+          "Google News RSS"
+        ],
+        "coverage_gaps": [
+          "Mancano dati ufficiali dettagliati sugli expected goals (xG/xGA) nel dataset di riferimento.",
+          "Le notizie RSS recenti non contengono i bollettini medici specifici per questa singola giornata di Serie A 2026/27."
+        ],
+        "pre_kickoff_checks": [
+          "Verificare le formazioni ufficiali un'ora prima del fischio d'inizio per confermare l'assenza di infortuni dell'ultima ora.",
+          "Controllare la designazione arbitrale definitiva per valutare i parametri di severità disciplinare."
+        ]
+      }
+    }
+  ]
 }
